@@ -121,8 +121,8 @@ After running the pipeline, two additional files will be created locally:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/spacex-predictor.git
-cd spacex-predictor
+git clone https://github.com/alkiviadisss/SpaceX.git
+cd SpaceX
 
 # 2. Create and activate a virtual environment
 python -m venv venv
@@ -139,8 +139,8 @@ No Python setup required. Docker handles everything.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/spacex-predictor.git
-cd spacex-predictor
+git clone https://github.com/alkiviadisss/SpaceX.git
+cd SpaceX
 
 # 2. Create a .env file with your AWS credentials (see AWS section below)
 cp .env.example .env   # or create manually
