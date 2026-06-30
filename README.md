@@ -71,7 +71,7 @@ Open-Meteo ──┘         │
 ## Project Structure
 
 ```
-spacex-predictor/
+SpaceX/
 ├── SpaceX.py            # Full ML pipeline (data → training → S3 upload)
 ├── app.py               # Streamlit web application
 ├── requirements.txt     # Python dependencies
