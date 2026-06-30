@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  streamlit-app:
+    build: .  # Λέει στο Compose: "Βρες το Dockerfile σε αυτόν τον φάκελο και χτίσε το"
+    ports:
+      - "8501:8501"  # Ενώνει την πόρτα του PC σου με του Docker
+    environment:
+      # Παίρνει αυτόματα τις τιμές από το PC σου και τις "περνάει" μέσα στο Docker
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
