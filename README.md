@@ -372,6 +372,7 @@ Install via:
 ```bash
 pip install -r requirements.txt
 ```
+*For this project i used my own Evaluation Metric library (standardizes supervised and unsupervised model diagnostics into a single, consistent API), that is also Verified and Published in PYPI Community.*
 
 ---
 
