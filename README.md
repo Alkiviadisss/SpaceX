@@ -14,8 +14,8 @@ A full end-to-end ML system that predicts the probability of a SpaceX Falcon 9 b
 - [Setup & Installation](#-setup--installation)
   - [Option A — Local Python Environment](#option-a-local-python-environment)
   - [Option B — Docker (Recommended)](#option-b-docker-recommended)
-- [Step 1 — Run the ML Pipeline](#step-1--run-the-ml-pipeline)
-- [Step 2 — Launch the Web App](#step-2--launch-the-web-app)
+- [Step 1 — Run the ML Pipeline](#step-1-run-the-ml-pipeline)
+- [Step 2 — Launch the Web App](#step-2-launch-the-web-app)
 - [How to Use the App](#-how-to-use-the-app)
 - [AWS S3 Configuration](#-aws-s3-configuration)
 - [Streamlit Secrets](#-streamlit-secrets)
@@ -152,7 +152,7 @@ The app will be available at **http://localhost:8501**.
 
 ---
 
-## Step 1 — Run the ML Pipeline
+## Step 1 - Run the ML Pipeline
 
 > This step trains the model and uploads it to S3. It only needs to be run **once**.
 
@@ -162,10 +162,10 @@ python SpaceX.py
 
 The pipeline executes 4 sequential steps:
 
-1. **Data Collection** — Calls the SpaceX API for the latest launch, enriches it with weather data from Open-Meteo, and stores everything in `master_spacex_weather.db`.
-2. **Cleanup** — Fills any missing `payload_mass_kg` values using the average for the same booster version.
-3. **Statistical Analysis** — Runs descriptive and inferential tests (t-tests, chi-square, ANOVA, Pearson correlation) and prints results to the console.
-4. **Encoding & Modeling** — Trains an XGBoost classifier inside a scikit-learn Pipeline, tunes it with GridSearchCV, evaluates it, runs SHAP explainability, saves `best_model.pkl`, and prompts you to upload it to S3.
+1. **Data Collection** - Calls the SpaceX API for the latest launch, enriches it with weather data from Open-Meteo, and stores everything in `master_spacex_weather.db`.
+2. **Cleanup** - Fills any missing `payload_mass_kg` values using the average for the same booster version.
+3. **Statistical Analysis** - Runs descriptive and inferential tests (t-tests, chi-square, ANOVA, Pearson correlation) and prints results to the console.
+4. **Encoding & Modeling** - Trains an XGBoost classifier inside a scikit-learn Pipeline, tunes it with GridSearchCV, evaluates it, runs SHAP explainability, saves `best_model.pkl`, and prompts you to upload it to S3.
 
 During the S3 upload step you will be asked interactively:
 
@@ -180,7 +180,7 @@ You can press Enter to use environment variables instead of typing credentials.
 
 ---
 
-## Step 2 — Launch the Web App
+## Step 2 - Launch the Web App
 
 ### Local
 
@@ -202,7 +202,7 @@ Open your browser at **http://localhost:8501**.
 
 The app has a **sidebar** for inputs and three **tabs** for outputs.
 
-### Sidebar — Mission Parameters
+### Sidebar - Mission Parameters
 
 | Input | Type | Description |
 |---|---|---|
@@ -218,11 +218,11 @@ The app has a **sidebar** for inputs and three **tabs** for outputs.
 
 Shows the predicted **probability of a successful booster landing** as a percentage, alongside a success/failure badge.
 
-### Tab 2 — Explainability (SHAP)
+### Tab 2 - Explainability (SHAP)
 
 Displays a SHAP Waterfall plot showing exactly which features pushed the model's prediction up or down and by how much.
 
-### Tab 3 — Business & ROI Calculator
+### Tab 3 - Business & ROI Calculator
 
 Enter three financial parameters to compute the **Expected Financial Value (EV)** of the launch:
 
