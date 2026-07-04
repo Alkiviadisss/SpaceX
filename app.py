@@ -5,16 +5,13 @@ import joblib
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-
-### Set Page Configuration
+
 st.set_page_config(
     page_title="SpaceX Landing Predictor",
-    layout="wide"
-)
+    layout="wide")
 
 @st.cache_resource
-def load_model():
-    ### Load the model from S3 (Caching)
+def load_model():
     bucket_name = st.secrets["AWS_BUCKET_NAME"] 
     s3_file_path = "production/best_model.pkl"
     local_temp_path = "downloaded_model.pkl"
@@ -23,8 +20,7 @@ def load_model():
             's3',
             aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
             aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
-            region_name=st.secrets.get("AWS_REGION", "eu-central-1")
-        )
+            region_name=st.secrets.get("AWS_REGION", "eu-central-1"))
         s3_client.download_file(bucket_name, s3_file_path, local_temp_path)
         return joblib.load(local_temp_path)
     except Exception as e:
@@ -33,7 +29,7 @@ def load_model():
 
 model = load_model()
 
-st.title(" SpaceX Launch Predictor & Cost Optimizer")
+st.title("SpaceX Launch Predictor & Cost Optimizer")
 st.markdown("Enter the mission parameters in the sidebar to calculate the probability of a successful landing and the expected financial risk.")
 
 st.sidebar.header("Mission Parameters")
@@ -57,16 +53,16 @@ input_df = pd.DataFrame({
     "visibility_m": [visibility_m]
 })
 
-tab1, tab2, tab3 = st.tabs([" Prediction", " Explainability (SHAP)", " Business & ROI"])
+tab1, tab2, tab3 = st.tabs(["Prediction", "Explainability (SHAP)", "Business & ROI"])
 
 if model is None:
-    st.error(" The file 'best_model.pkl' was not found. Please make sure you have trained and saved your model.")
+    st.error("The file 'best_model.pkl' was not found. Please make sure you have trained and saved your model.")
 else:
     prediction_proba = model.predict_proba(input_df)[0][1]
     prediction_class = model.predict(input_df)[0]
 
     with tab1:
-        ### Prediction Probability
+        #Prediction Probability
         st.subheader("Probability Results")
         prob_percentage = prediction_proba * 100        
         col1, col2 = st.columns(2)
@@ -75,16 +71,16 @@ else:
             if prediction_class == 1:
                 st.success("Likely to Succeed")
             else:
-                st.error(" Likely to FAIL (High Risk)")
+                st.error("Likely to FAIL (High Risk)")
                 
         with col2:
             st.metric(label="Probability of Success", value=f"{prob_percentage:.1f}%")
 
 
     with tab2:
-        ### Explainability SHAP (Waterfall Plot)
+        #Explainability SHAP (Waterfall Plot)
         st.subheader("Explainability (SHAP)")
-        st.markdown("This Waterfall plot explains exactly why the model produced the specific result. It shows how much each parameter positively red or negatively blue influenced the final decision.")
+        Feature impact on the current prediction (SHAP WATERFALL)")
 
         try:
             xgb_model = model.named_steps['classifier']
@@ -103,7 +99,7 @@ else:
             st.error(f"Failure to create SHAP chart: {e}")
 
     with tab3:
-        ### Expected Value (Business Calculator)
+        #Expected Value (Business Calculator)
         st.subheader("Expected Value (Business Calculator)")
         payload_value = st.number_input("Payload Value (Millions $)", value=150.0)
         launch_cost = st.number_input("Launch Cost (Millions $)", value=67.0)
@@ -113,7 +109,7 @@ else:
         expected_revenue = prob_success * payload_value
         expected_cost = launch_cost + (prob_fail * failure_cost)
         ev = expected_revenue - expected_cost
-        st.markdown(f"### Expected Financial Value: **${ev:.2f}M**")
+        st.markdown(f"#Expected Financial Value: **${ev:.2f}M**")
         if ev > 0:
             st.success("The launch is likely to be profitable. Recommended to launch.")
         else:
