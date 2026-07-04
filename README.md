@@ -116,7 +116,7 @@ After running the pipeline, two additional files will be created locally:
 
 ## Setup & Installation
 
-### Option A — Local Python Environment
+### Option A - Local Python Environment
 
 ```bash
 # 1. Clone the repository
@@ -132,7 +132,7 @@ venv\Scripts\activate           # Windows
 pip install -r requirements.txt
 ```
 
-### Option B — Docker (Recommended)
+### Option B - Docker (Recommended)
 
 No Python setup required. Docker handles everything.
 
