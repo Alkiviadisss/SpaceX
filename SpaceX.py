@@ -8,16 +8,14 @@ import sqlite3
 import requests
 import calendar
 import pandas as pd
-import xgboost as xgb
-import streamlit as st
+import xgboost as xgb
 from scipy import stats
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from scipy.stats import ttest_ind
 from scipy.stats import chi2_contingency
-from datetime import timedelta, datetime
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from sklearn.pipeline import Pipeline
 from EMReport import EMReport_Classification
 from sklearn.compose import ColumnTransformer
@@ -27,7 +25,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
 
 def get_weather_data(lat, lon, dt_unix):
-    ### Weather Data Collection
+    #Weather Data Collection
     launch_dt = datetime.fromtimestamp(dt_unix, tz=timezone.utc)
     date_str = launch_dt.strftime('%Y-%m-%d')
     hour_index = launch_dt.hour 
@@ -44,7 +42,7 @@ def get_weather_data(lat, lon, dt_unix):
         return {"temp_c": None, "wind_speed_kmh": None, "visibility_m": None}
 
 def get_spacex_data():
-    ### SpaceX Data Collection
+    #SpaceX Data Collection
     print("Attempt to extract LIVE data from SpaceX API...")
     try:
         res_launch = requests.get("https://api.spacexdata.com/v4/launches/latest", timeout=10)
@@ -111,7 +109,7 @@ def get_spacex_data():
         print(f"Failed to acquire Live SpaceX data ({e}). Using Mock Data...")
 
         def generate_synthetic_spacex_data(num_records=200):
-            ### Synthetic Data Generation
+            #Synthetic Data Generation
             print(f"Generating and Saving {num_records} Synthetic Launches to the Database...")
     
             synthetic_data = []
@@ -148,7 +146,7 @@ def get_spacex_data():
 
 
 def save_to_sqlite(record):
-    ### SQLite Database Insertion
+    #SQLite Database Insertion
     launch_dt = datetime.fromtimestamp(record['dt_unix'], tz=timezone.utc)
     launch_time_str = launch_dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 
@@ -198,7 +196,7 @@ def save_to_sqlite(record):
 
 
 def cleanup_database():
-    ### Database Cleanup
+    #Database Cleanup
     conn = sqlite3.connect('master_spacex_weather.db')
     df = pd.read_sql_query("SELECT * FROM ultimate_launches", conn)
     missing_payload_values = df['payload_mass_kg'].isnull().sum()
@@ -210,34 +208,33 @@ def cleanup_database():
     return f"Database cleaned! Filled {missing_payload_values} missing payload_mass_kg values with booster version averages."
 
 
-def Statistical_Analysis():
+def statistical_Analysis():
     conn = sqlite3.connect('master_spacex_weather.db')
     df = pd.read_sql_query("SELECT * FROM ultimate_launches", conn)
-    print("=== STATISTICAL ANALYSIS ===")
-    ### Descriptive Statistical Analysis
+    print("●●● STATISTICAL ANALYSIS ●●●")
+    #Descriptive Statistical Analysis
     df.head()
     df.info()
     df.describe()
-    # Landing Success/Failure Rate Analysis
+    #Landing Success/Failure Rate Analysis
     landing_success_count = df["landing_outcome"].str.contains("True").sum()
     landing_failure_count = df["landing_outcome"].str.contains("False").sum()
     print(f"Landing Success percentage: {(landing_success_count / len(df)) * 100:.2f}%")
     print(f"Landing Failure percentage: {(landing_failure_count / len(df)) * 100:.2f}%")
-    # Maximum, Minimum, Average Value Analysis for Payload Mass
+    #Maximum, Minimum, Average Value Analysis for Payload Mass
     payload_stat = df['payload_mass_kg'].min(), df['payload_mass_kg'].max(), df['payload_mass_kg'].mean()
     print(f"Payload Mass (kg) - Min: {payload_stat[0]}, Max: {payload_stat[1]}, Mean: {payload_stat[2]:.2f}")
-    # Average Analysis for Temperature, Wind Speed ​​and Visibility
+    #Average Analysis for Temperature, Wind Speed ​​and Visibility
     weather_stat = df["temp_c"].mean(), df["wind_speed_kmh"].mean(), df["visibility_m"].mean()
     print(f"Weather Averages - Temp (C): {weather_stat[0]:.2f}, Wind Speed (km/h): {weather_stat[1]:.2f}, Visibility (m): {weather_stat[2]:.2f}")
-    # Analysis of Launch Distribution by Launch Site
+    #Analysis of Launch Distribution by Launch Site
     launch_site_distribution = df['launch_site'].value_counts(normalize=True) * 100
     print(f"Launch Site Distribution (%): {launch_site_distribution.to_dict()}")
     
-    ### Inductive Statistical Analysis
-    # Assumption of landing success based on wind speed.
-    # t-test because I compare means of two independent samples (success vs failure) for wind speed.
-    # H0: Wind speed does not affect landing success.
-    # H1: Wind speed affects landing success.
+    #Inductive Statistical Analysis
+    #Assumption of landing success based on wind speed.
+    #H0: Wind speed does not affect landing success.
+    #H1: Wind speed affects landing success.
     success_wind = df[df["landing_outcome"].str.contains("True")]["wind_speed_kmh"]
     failure_wind = df[df["landing_outcome"].str.contains("False")]["wind_speed_kmh"]
     t_stat, p_value = ttest_ind(success_wind, failure_wind, equal_var=False)
@@ -246,10 +243,9 @@ def Statistical_Analysis():
     else:
         print(f"Fail to Reject H0: Wind Speed does not significantly affect Landing Outcome (t-statistic = {t_stat:.4f}, p-value = {p_value:.4f})")
     
-    # Landing success hypothesis based on launch site.
-    # chi-square test because I am comparing two categories (launch site vs landing outcome).
-    # H0: Launch site does not affect landing success.
-    # H1: Launch site does affect landing success.
+    #Landing success hypothesis based on launch site.
+    #H0: Launch site does not affect landing success.
+    #H1: Launch site does affect landing success.
     contingency_table = pd.crosstab(df["launch_site"], df["landing_outcome"].str.contains("True"))
     chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
     if p_value < 0.05:
@@ -257,10 +253,9 @@ def Statistical_Analysis():
     else:  
         print(f"Fail to Reject H0: Launch Site does not significantly affect Landing Outcome (chi2-statistic = {chi2_stat:.4f}, p-value = {p_value:.4f})")
     
-    # Landing success hypothesis based on Payload Mass and Orbit. 
-    # I use ANOVA because I am comparing means of more than two groups (different orbits).
-    # H0: Payload Mass does not affect landing success per orbit.
-    # H1: Payload Mass affects landing success per orbit.
+    #Landing success hypothesis based on Payload Mass and Orbit. 
+    #H0: Payload Mass does not affect landing success per orbit.
+    #H1: Payload Mass affects landing success per orbit.
     anova_data = df[df["landing_outcome"].str.contains("True")].groupby("orbit")["payload_mass_kg"].apply(list)
     f_stat, p_value = stats.f_oneway(*anova_data)
     if p_value < 0.05:
@@ -268,10 +263,9 @@ def Statistical_Analysis():
     else:
         print(f"Fail to Reject H0: Payload Mass does not significantly affect Landing Outcome (F-statistic = {f_stat:.4f}, p-value = {p_value:.4f})")
     
-    # Landing Failure Hypothesis based on Visibility.
-    # I use t-test because I compare means of two independent samples (success vs failure) for visibility.
-    # H0: Visibility does not affect landing failure.
-    # H1: Visibility affects landing failure.
+    #Landing Failure Hypothesis based on Visibility.
+    #H0: Visibility does not affect landing failure.
+    #H1: Visibility affects landing failure.
     success_visibility = df[df["landing_outcome"].str.contains("True")]["visibility_m"]
     failure_visibility = df[df["landing_outcome"].str.contains("False")]["visibility_m"]
     t_stat, p_value = ttest_ind(success_visibility, failure_visibility, equal_var=False)
@@ -279,8 +273,7 @@ def Statistical_Analysis():
         print(f"Reject H0: Visibility significantly affects Landing Outcome (t-statistic = {t_stat:.4f}, p-value = {p_value:.4f})")
     else:
         print(f"Fail to Reject H0: Visibility does not significantly affect Landing Outcome (t-statistic = {t_stat:.4f}, p-value = {p_value:.4f})")
-    # Does the landing failure rate increase when visibility drops (e.g., < 5000 m)?
-    # I am using a chi-square test because I am comparing two categories (visibility < 5000 m vs. landing outcome).
+    #Does the landing failure rate increase when visibility drops (e.g., < 5000 m)?
     df["low_visibility"] = df["visibility_m"] < 5000
     contingency_table = pd.crosstab(df["low_visibility"], df["landing_outcome"].str.contains("True"))
     chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
@@ -289,10 +282,9 @@ def Statistical_Analysis():
     else:
         print(f"Fail to Reject H0: Low Visibility (<5000 m) does not significantly affect Landing Outcome (chi2-statistic = {chi2_stat:.4f}, p-value = {p_value:.4f})")
     
-    # Landing Success Hypothesis based on Payload Mass.
-    # I use t-test because I compare means of two independent samples (success vs failure) for payload mass.
-    # H0: Payload Mass does not affect landing success.
-    # H1: Payload Mass affects landing success.
+    #Landing Success Hypothesis based on Payload Mass.
+    #H0: Payload Mass does not affect landing success.
+    #H1: Payload Mass affects landing success.
     success_payload = df[df["landing_outcome"].str.contains("True")]["payload_mass_kg"]
     failure_payload = df[df["landing_outcome"].str.contains("False")]["payload_mass_kg"]
     t_stat, p_value = ttest_ind(success_payload, failure_payload, equal_var=False)
@@ -301,8 +293,7 @@ def Statistical_Analysis():
     else:
         print(f"Fail to Reject H0: Payload Mass does not significantly affect Landing Outcome (t-statistic = {t_stat:.4f}, p-value = {p_value:.4f})")
 
-    ## Time Series Analysis to see if there is a trend over time.
-    # Finding landing successes as the number of flights (flight_number) increases.   
+    #Time Series Analysis to see if there is a trend over time.   
     df['success'] = df['landing_outcome'].str.contains("True").astype(int)
     df['cumulative_success_rate'] = df['success'].expanding().mean()
     corr, p_value = pearsonr(df['flight_number'], df['cumulative_success_rate'])
@@ -311,7 +302,7 @@ def Statistical_Analysis():
     else:
         print(f"No strong upward trend is observed over time. The Success rate doesn't Increases, (Correlation: {corr:.2f}, (P-Value: {p_value:.4f}) )")
 
-    # Find Load Weight Per Year.
+    #Find Load Weight Per Year.
     df['launch_time'] = pd.to_datetime(df['launch_time'])
     df['cumulative_payload_mass'] = df['payload_mass_kg'].expanding().mean()
     corr, p_value = pearsonr(df['flight_number'], df['cumulative_payload_mass'])
@@ -320,10 +311,9 @@ def Statistical_Analysis():
     else:
         print(f"SpaceX payload mass didn't increase with the passage of time, (Correlation: {corr:.2f}), (P-Value: {p_value:.4f})")
 
-    # Seasonality Assumption in Launches.
-    # We use Chi-Square (Goodness of Fit Test) because we are dealing with categorical variables (X Months).
-    # H0: Launches are Independent of Seasonality.
-    # H1: Launches are not Independent of Seasonality.
+    #Seasonality Assumption in Launches.
+    #H0: Launches are Independent of Seasonality.
+    #H1: Launches are not Independent of Seasonality.
     df['month'] = df['launch_time'].dt.month
     df['month_name'] = df['month'].apply(lambda x: calendar.month_abbr[x])
     month_counts = df['month'].value_counts().sort_index()
@@ -339,7 +329,6 @@ def Statistical_Analysis():
 def encoding_modeling():
     conn = sqlite3.connect('master_spacex_weather.db')
     df = pd.read_sql_query("SELECT * FROM ultimate_launches", conn)
-    # We encode the Data.
     le = LabelEncoder()
     ss = StandardScaler()
     ohe = OneHotEncoder(handle_unknown='ignore')
@@ -348,14 +337,12 @@ def encoding_modeling():
         ('num', ss, ['payload_mass_kg', 'temp_c', 'wind_speed_kmh', 'visibility_m'])
         ])
     x = df[["launch_site", "booster_version", "orbit", "payload_mass_kg", "temp_c", "wind_speed_kmh", "visibility_m"]]
-    y = df["landing_outcome"]
-    # We create the Training & Testing Sets.
+    y = df["landing_outcome"]
     y_encoded = le.fit_transform(y)
     tscv = TimeSeriesSplit(n_splits=3)
     for train_index, test_index in tscv.split(x):
         x_train, x_test = x.iloc[train_index], x.iloc[test_index]
-        y_train, y_test = y_encoded[train_index], y_encoded[test_index]
-    # We create the Model (XGBoost).
+        y_train, y_test = y_encoded[train_index], y_encoded[test_index]
     model = Pipeline(steps=[("preprocess", preprocess),("classifier", xgb.XGBClassifier(random_state=42))])
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
@@ -364,23 +351,21 @@ def encoding_modeling():
     test_accuracy = model.score(x_test, y_test)
     print(f"Train Accuracy: {train_accuracy:.2f}")
     print(f"Test Accuracy: {test_accuracy:.2f}")
-    print(EMReport_Classification(y_test, y_pred))
-    # We use GridSearchCV to tune the Model.
+    print(EMReport_Classification(y_test, y_pred))
     param_grid = {
-    'classifier__max_depth': [2, 3, 4],            # Depth of the Trees to avoid overfitting.
-    'classifier__learning_rate': [0.01, 0.05, 0.1], # Slower learning = better training.
-    'classifier__n_estimators': [50, 100, 150],    # Number of Trees.
-    'classifier__subsample': [0.7, 0.8, 1.0]       # Sampling for Overfitting.
+    'classifier__max_depth': [2, 3, 4],
+    'classifier__learning_rate': [0.01, 0.05, 0.1],
+    'classifier__n_estimators': [50, 100, 150],
+    'classifier__subsample': [0.7, 0.8, 1.0]       
     }
     inner_cv = TimeSeriesSplit(n_splits=3)
     grid_search = GridSearchCV(
     estimator=model,
     param_grid=param_grid,
     scoring='accuracy',
-    cv=inner_cv,        # protects the data from data leakage.
-    verbose=1,          # shows messages during the process.
-    n_jobs=-1           # uses all the workers of the machine.
-    )
+    cv=inner_cv,        
+    verbose=1,
+    n_jobs=-1)
     grid_search.fit(x_train, y_train)
     print(f"Best Parameters: {grid_search.best_params_}")
     best_model = grid_search.best_estimator_
@@ -388,8 +373,7 @@ def encoding_modeling():
     test_accuracy = best_model.score(x_test, y_test)
     print(f"New Train Accuracy: {train_accuracy:.2f}")
     print(f"New Test Accuracy: {test_accuracy:.2f}")
-    print(EMReport_Classification(y_test, best_model.predict(x_test)))
-    # We use SHAP to explain what is happening with the Model.
+    print(EMReport_Classification(y_test, best_model.predict(x_test)))
     xgb_model = best_model.named_steps['classifier']
     preprocessor = best_model.named_steps['preprocess']
     x_test_processed = preprocessor.transform(x_test)
@@ -398,8 +382,7 @@ def encoding_modeling():
     explainer = shap.TreeExplainer(xgb_model)
     shap_values = explainer(x_test_shap)
     joblib.dump(best_model, "best_model.pkl")
-    print("The model has been saved to the file 'best_model.pkl'")
-    # We create a S3 Bucket to store the model and data.
+    print("The model has been saved to the file 'best_model.pkl'")
     print("\n" + "="*50)
     print(" Connecting with AWS S3 Bucket...")
     print("="*50)
@@ -407,7 +390,7 @@ def encoding_modeling():
     print("(If you simply press Enter, an attempt will be made to use Environment Variables)\n")
     aws_access_key = input("AWS Access Key ID: ").strip() or os.getenv("AWS_ACCESS_KEY_ID")
     aws_secret_key = getpass.getpass("AWS Secret Access Key (Secret): ").strip() or os.getenv("AWS_SECRET_ACCESS_KEY")
-    bucket_name = input("Όνομα S3 Bucket (π.χ. spacex-ml-models): ").strip()
+    bucket_name = input("S3 Bucket name (e.g. spacex-ml-models): ").strip()
     region_name = input("Region (for example eu-central-1) [Default: eu-central-1]: ").strip() or "eu-central-1"
     if aws_access_key and aws_secret_key and bucket_name:
         try:
@@ -419,13 +402,13 @@ def encoding_modeling():
             )
             
             s3_file_path = "production/best_model.pkl"
-            print(f"\n The model upload to bucke beginst '{bucket_name}'...")
+            print(f"\n Uploading model to bucket'{bucket_name}'...").
             s3_client.upload_file("best_model.pkl", bucket_name, s3_file_path)
-            print(f" SUCCESS! The model has been uploaded to S3 and is ready for the Web App.")
+            print(f"SUCCESS! The model has been uploaded to S3 and is ready for the Web App.")
         except Exception as e:
             print(f"\n Failed to upload the model to S3 ({e}). The model will be saved locally.")
     else:
-        print("\n Upload to S3 was omitted due to missing data (the model remained only locally).")
+        print(f"\n Upload to S3 was omitted due to missing data (the model remained only locally).")
 
     conn.commit()
     conn.close()
@@ -434,23 +417,19 @@ def encoding_modeling():
 
 
 if __name__ == "__main__":
-    ### Main Flow (Data Pipeline)
-    print(" === START SPACEX DATA PIPELINE === \n")
-
-    # Step 1: Collecting SpaceX Data
+    #Data Pipeline
+    print(" ●●● START SPACEX DATA PIPELINE ●●● \n")
+
     space_records = get_spacex_data()
     print(f"Entries {len(space_records)} have been received. Registering in the database....")
     for record in space_records:  
         save_to_sqlite(record)
     
-    print("\n=== PREPARING DATA FOR MACHINE LEARNING ===")
-    # Step 2: Cleaning Data
+    print("\n ●●● PREPARING DATA FOR MACHINE LEARNING ●●●")
     cleanup_database()
-
-    # Step 3: Statistical Analysis
-    Statistical_Analysis()
-
-    # Step 4: Encoding, Modeling, and Explainability
+
+    statistical_Analysis()
+
     encoding_modeling()
     
-    print("\n === THE PIPELINE IS COMPLETED! ===")
+    print("\n ●●● THE PIPELINE IS COMPLETED! ●●●")
