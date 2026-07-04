@@ -51,7 +51,7 @@ Open-Meteo ──┘         │
                master_spacex_weather.db  (SQLite)
                         │
               ┌─────────┴──────────┐
-              ▼                    ▼
+              ▼                          ▼
       cleanup_database()   statistical_Analysis()
               │
               ▼
