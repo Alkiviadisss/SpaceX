@@ -44,14 +44,14 @@ The pipeline attempts to pull **live data** from the SpaceX public API (v4) and 
 SpaceX API ──┐
              ├──► get_spacex_data()
 Open-Meteo ──┘         │
-                        ▼
+                       ▼
                save_to_sqlite()
-                        │
-                        ▼
+                       │
+                       ▼
                master_spacex_weather.db  (SQLite)
                         │
               ┌─────────┴──────────┐
-              ▼                      ▼
+              ▼                       ▼
       cleanup_database()   statistical_Analysis()
               │
               ▼
