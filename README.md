@@ -77,7 +77,6 @@ SpaceX/
 ├── requirements.txt     # Python dependencies
 ├── Dockerfile           # Container definition
 ├── docker-compose.yml   # Multi-container orchestration
-└── .gitignore           # Git ignore file
 ```
 
 After running the pipeline, two additional files will be created locally:
@@ -155,7 +154,7 @@ The app will be available at **http://localhost:8501**.
 
 ## Step 1 — Run the ML Pipeline
 
-> This step trains the model and uploads it to S3. It only needs to be run **once** (or whenever you want to retrain).
+> This step trains the model and uploads it to S3. It only needs to be run **once**.
 
 ```bash
 python SpaceX.py
@@ -280,8 +279,6 @@ AWS_SECRET_ACCESS_KEY = "your_secret_key"
 AWS_BUCKET_NAME = "your_bucket_name"
 AWS_REGION = "eu-central-1"
 ```
-
-> Never commit `secrets.toml` or `.env` to version control. They are listed in `.gitignore`.
 
 ---
 
