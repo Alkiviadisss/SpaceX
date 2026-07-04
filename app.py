@@ -80,7 +80,7 @@ else:
     with tab2:
         #Explainability SHAP (Waterfall Plot)
         st.subheader("Explainability (SHAP)")
-        Feature impact on the current prediction (SHAP WATERFALL)")
+        st.markdown("Feature impact on the current prediction (SHAP WATERFALL)")
 
         try:
             xgb_model = model.named_steps['classifier']
@@ -109,7 +109,7 @@ else:
         expected_revenue = prob_success * payload_value
         expected_cost = launch_cost + (prob_fail * failure_cost)
         ev = expected_revenue - expected_cost
-        st.markdown(f"#Expected Financial Value: **${ev:.2f}M**")
+        st.markdown(f"# Expected Financial Value: **${ev:.2f}M**")
         if ev > 0:
             st.success("The launch is likely to be profitable. Recommended to launch.")
         else:
