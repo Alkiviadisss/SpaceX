@@ -213,9 +213,7 @@ def statistical_Analysis():
     df = pd.read_sql_query("SELECT * FROM ultimate_launches", conn)
     print("●●● STATISTICAL ANALYSIS ●●●")
     #Descriptive Statistical Analysis
-    df.head()
-    df.info()
-    df.describe()
+    print(df.describe())
     #Landing Success/Failure Rate Analysis
     landing_success_count = df["landing_outcome"].str.contains("True").sum()
     landing_failure_count = df["landing_outcome"].str.contains("False").sum()
@@ -345,8 +343,7 @@ def encoding_modeling():
         y_train, y_test = y_encoded[train_index], y_encoded[test_index]
     model = Pipeline(steps=[("preprocess", preprocess),("classifier", xgb.XGBClassifier(random_state=42))])
     model.fit(x_train, y_train)
-    y_pred = model.predict(x_test)
-    # We evaluate the Model Accuracy.
+    y_pred = model.predict(x_test)
     train_accuracy = model.score(x_train, y_train)
     test_accuracy = model.score(x_test, y_test)
     print(f"Train Accuracy: {train_accuracy:.2f}")
@@ -402,7 +399,7 @@ def encoding_modeling():
             )
             
             s3_file_path = "production/best_model.pkl"
-            print(f"\n Uploading model to bucket'{bucket_name}'...").
+            print(f"\n Uploading model to bucket '{bucket_name}'...")
             s3_client.upload_file("best_model.pkl", bucket_name, s3_file_path)
             print(f"SUCCESS! The model has been uploaded to S3 and is ready for the Web App.")
         except Exception as e:
