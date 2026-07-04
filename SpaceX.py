@@ -408,7 +408,7 @@ def encoding_modeling():
         except Exception as e:
             print(f"\n Failed to upload the model to S3 ({e}). The model will be saved locally.")
     else:
-        print(f"\n Upload to S3 was omitted due to missing data (the model remained only locally).")
+        print("\n Upload to S3 was omitted due to missing data (the model remained only locally).")
 
     conn.commit()
     conn.close()
