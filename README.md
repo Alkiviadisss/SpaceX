@@ -12,8 +12,8 @@ A full end-to-end ML system that predicts the probability of a SpaceX Falcon 9 b
 - [Tech Stack](#-tech-stack)
 - [Prerequisites](#-prerequisites)
 - [Setup & Installation](#-setup--installation)
-  - [Option A — Local Python Environment](#option-a--local-python-environment)
-  - [Option B — Docker (Recommended)](#option-b--docker-recommended)
+  - [Option A — Local Python Environment](#option-a-local-python-environment)
+  - [Option B — Docker (Recommended)](#option-b-docker-recommended)
 - [Step 1 — Run the ML Pipeline](#step-1--run-the-ml-pipeline)
 - [Step 2 — Launch the Web App](#step-2--launch-the-web-app)
 - [How to Use the App](#-how-to-use-the-app)
@@ -52,7 +52,7 @@ Open-Meteo ──┘         │
                         │
               ┌─────────┴──────────┐
               ▼                    ▼
-      cleanup_database()   Statistical_Analysis()
+      cleanup_database()   statistical_Analysis()
               │
               ▼
       encoding_modeling()
@@ -214,7 +214,7 @@ The app has a **sidebar** for inputs and three **tabs** for outputs.
 | Wind Speed (km/h) | Slider | 0 – 50 km/h |
 | Visibility (m) | Slider | 1,000 – 10,000 m |
 
-### Tab 1 — Prediction
+### Tab 1 - Prediction
 
 Shows the predicted **probability of a successful booster landing** as a percentage, alongside a success/failure badge.
 
