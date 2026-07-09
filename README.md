@@ -160,7 +160,7 @@ The app will be available at **http://localhost:8501**.
 python SpaceX.py
 ```
 
-The pipeline executes 4 sequential steps:
+The pipeline executes 4 sequential steps: 
 
 1. **Data Collection** - Calls the SpaceX API for the latest launch, enriches it with weather data from Open-Meteo, and stores everything in `master_spacex_weather.db`.
 2. **Cleanup** - Fills any missing `payload_mass_kg` values using the average for the same booster version.
