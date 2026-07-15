@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="SpaceX Landing Predictor",layout="wide")
 
-@st.cache_resource
+@st.cache_resource 
 def load_model():
     bucket_name = st.secrets["AWS_BUCKET_NAME"] 
     s3_file_path = "production/best_model.pkl"
