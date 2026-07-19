@@ -5,24 +5,30 @@ import joblib
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-
-st.set_page_config(page_title="SpaceX Landing Predictor",layout="wide")
+
+
+st.set_page_config(page_title="SpaceX Landing Predictor",
+layout="wide")
 
 @st.cache_resource 
-def load_model():
-    bucket_name = st.secrets["AWS_BUCKET_NAME"] 
-    s3_file_path = "production/best_model.pkl"
-    local_temp_path = "downloaded_model.pkl"
+def load_model():
     try:
-        s3_client = boto3.client('s3',
-            aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-            aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
-            region_name=st.secrets.get("AWS_REGION", "eu-central-1"))
-        s3_client.download_file(bucket_name, s3_file_path, local_temp_path)
-        return joblib.load(local_temp_path)
-    except Exception as e:
-        st.error(f"Error connecting to Amazon S3: {e}")
-        return None
+        bucket_name = st.secrets["AWS_BUCKET_NAME"] 
+        s3_file_path = "production/best_model.pkl"
+        local_temp_path = "downloaded_model.pkl"
+        try:
+            s3_client = boto3.client('s3',
+                aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
+                aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
+                region_name=st.secrets.get("AWS_REGION", "eu-central-1"))
+            s3_client.download_file(bucket_name, s3_file_path, local_temp_path)
+            return joblib.load(local_temp_path)
+        except Exception as e:
+            st.error(f"Error connecting to Amazon S3: {e}")
+            return None
+    except FileNotFoundError:
+        st.error("The model file 'best_model.pkl' was not found in AWS S3. Finding the model in the local directory...")
+        return joblib.load("best_model.pkl")
 
 model = load_model()
 
