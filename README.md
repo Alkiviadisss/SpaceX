@@ -376,7 +376,7 @@ pip install -r requirements.txt
 ## Author
 
 **Alkiviadis Agrogiannhs**  
-Data Scientist & Machine Learning Engineer  
+Data Scientist & Machine Learning Engineer 
 [LinkedIn](https://www.linkedin.com/in/alkiviadis-agrogiannhs/)
 [Email](mailto:alkiviadisagrogiannhs@gmail.com)
 [GitHub](https://github.com/alkiviadisss)
