@@ -30,7 +30,7 @@ def load_model():
         st.error("The model file 'best_model.pkl' was not found in AWS S3. Finding the model in the local directory...")
         return joblib.load("best_model.pkl")
 
-model = load_model()
+model = load_model() 
 
 st.title("SpaceX Launch Predictor & Cost Optimizer")
 st.markdown("Enter the mission parameters in the sidebar to calculate the probability of a successful landing and the expected financial risk.")
