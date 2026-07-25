@@ -1,6 +1,6 @@
 # SpaceX Launch Predictor & Cost Optimizer
 
-A full end-to-end ML system that predicts the probability of a SpaceX Falcon 9 booster landing successfully, enriches launch data with real weather conditions, and exposes the results through an interactive Streamlit web application with a business ROI calculator.
+A full end-to-end ML system that predicts the probability of a SpaceX Falcon 9 booster landing successfully, enriches launch data with real weather conditions, and exposes the results through an interactive Streamlit web application with a business ROI calculator. 
 
 ---
 
