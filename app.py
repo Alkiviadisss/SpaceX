@@ -46,16 +46,7 @@ temp_c = st.sidebar.slider("Temperature (°C)", 0.0, 40.0, 25.0)
 wind_speed_kmh = st.sidebar.slider("Wind Speed (km/h)", 0.0, 50.0, 15.0)
 visibility_m = st.sidebar.slider("Visibility (m)", 1000, 10000, 10000)
 
-input_df = pd.DataFrame({
-    "launch_site": [launch_site],
-    "booster_version": [booster_version],
-    "orbit": [orbit],
-    "payload_mass_kg": [payload_mass_kg],
-    "temp_c": [temp_c],
-    "wind_speed_kmh": [wind_speed_kmh],
-    "visibility_m": [visibility_m]
-})
-
+input_df = pd.DataFrame({"launch_site": [launch_site], "booster_version": [booster_version], "orbit": [orbit], "payload_mass_kg": [payload_mass_kg], "temp_c": [temp_c], "wind_speed_kmh": [wind_speed_kmh], "visibility_m": [visibility_m]})
 tab1, tab2, tab3 = st.tabs(["Prediction", "Explainability (SHAP)", "Business & ROI"])
 
 if model is None:
@@ -65,7 +56,6 @@ else:
     prediction_class = model.predict(input_df)[0]
 
     with tab1:
-        #Prediction Probability
         st.subheader("Probability Results")
         prob_percentage = prediction_proba * 100        
         col1, col2 = st.columns(2)
@@ -81,10 +71,9 @@ else:
 
 
     with tab2:
-        #Explainability SHAP (Waterfall Plot)
         st.subheader("Explainability (SHAP)")
         st.markdown("Feature impact on the current prediction (SHAP WATERFALL)")
-
+        
         try:
             xgb_model = model.named_steps['classifier']
             preprocessor = model.named_steps['preprocess']
@@ -102,7 +91,6 @@ else:
             st.error(f"Failure to create SHAP chart: {e}")
 
     with tab3:
-        #Expected Value (Business Calculator)
         st.subheader("Expected Value (Business Calculator)")
         payload_value = st.number_input("Payload Value (Millions $)", value=150.0)
         launch_cost = st.number_input("Launch Cost (Millions $)", value=67.0)
