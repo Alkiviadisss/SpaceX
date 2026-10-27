@@ -8,7 +8,8 @@ import sqlite3
 import requests
 import calendar
 import pandas as pd
-import xgboost as xgb
+import xgboost as xgb
+
 from scipy import stats
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
@@ -25,7 +26,6 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
 
 def get_weather_data(lat, lon, dt_unix):
-    #Weather Data Collection
     launch_dt = datetime.fromtimestamp(dt_unix, tz=timezone.utc)
     date_str = launch_dt.strftime('%Y-%m-%d')
     hour_index = launch_dt.hour 
@@ -33,16 +33,13 @@ def get_weather_data(lat, lon, dt_unix):
     url = f"https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date={date_str}&end_date={date_str}&hourly=temperature_2m,wind_speed_10m,visibility"
     try:
         res = requests.get(url, timeout=10).json()
-        return {
-            "temp_c": res['hourly']['temperature_2m'][hour_index],
+        return {"temp_c": res['hourly']['temperature_2m'][hour_index],
             "wind_speed_kmh": res['hourly']['wind_speed_10m'][hour_index],
-            "visibility_m": res['hourly']['visibility'][hour_index]
-        }
+            "visibility_m": res['hourly']['visibility'][hour_index]}
     except Exception:
         return {"temp_c": None, "wind_speed_kmh": None, "visibility_m": None}
 
 def get_spacex_data():
-    #SpaceX Data Collection
     print("Attempt to extract LIVE data from SpaceX API...")
     try:
         res_launch = requests.get("https://api.spacexdata.com/v4/launches/latest", timeout=10)
@@ -89,8 +86,7 @@ def get_spacex_data():
         weather = get_weather_data(lat, lon, dt_unix)
     
         print("Successful Live Data Acquisition by SpaceX!")
-        return [{
-            "mission_name": l_data.get('name'),
+        return [{"mission_name": l_data.get('name'),
             "flight_number": l_data.get('flight_number'),
             "launch_site": p_data.get('name', 'Unknown'),
             "lat": p_data.get('latitude'),
@@ -102,19 +98,16 @@ def get_spacex_data():
             "landing_outcome": landing_outcome,
             "temp_c": weather['temp_c'],
             "wind_speed_kmh": weather['wind_speed_kmh'],
-            "visibility_m": weather['visibility_m']
-        }]
+            "visibility_m": weather['visibility_m']}]
         
     except Exception as e:
         print(f"Failed to acquire Live SpaceX data ({e}). Using Mock Data...")
 
         def generate_synthetic_spacex_data(num_records=200):
-            #Synthetic Data Generation
             print(f"Generating and Saving {num_records} Synthetic Launches to the Database...")
     
             synthetic_data = []
             base_date = datetime(2018, 1, 1)
-    
             for i in range(1, num_records + 1):
                 base_date += timedelta(days=random.randint(5, 15))
                 wind_speed_kmh = round(random.uniform(0.0, 30.0), 1)
@@ -125,8 +118,7 @@ def get_spacex_data():
                 else:
                     landing_outcome = f"True {random.choice(['ASDS', 'RTLS'])}" if random.random() > 0.10 else "False ASDS"
 
-                synthetic_data.append({
-                    "mission_name": f"Synthetic-Mission-{i}", 
+                synthetic_data.append({"mission_name": f"Synthetic-Mission-{i}", 
                     "flight_number": i + 500,
                     "launch_site": random.choice(["KSC LC 39A", "CCSFS SLC 40", "VAFB SLC 4E"]),
                     "lat": 28.5, 
@@ -138,24 +130,19 @@ def get_spacex_data():
                     "landing_outcome": landing_outcome,
                     "temp_c": round(random.uniform(5.0, 35.0), 1), 
                     "wind_speed_kmh": wind_speed_kmh, 
-                    "visibility_m": visibility_m
-                })
-        
+                    "visibility_m": visibility_m})
             return synthetic_data
         return generate_synthetic_spacex_data(200)
 
 
 def save_to_sqlite(record):
-    #SQLite Database Insertion
     launch_dt = datetime.fromtimestamp(record['dt_unix'], tz=timezone.utc)
     launch_time_str = launch_dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 
     conn = sqlite3.connect('master_spacex_weather.db', timeout=10)
     cursor = conn.cursor()
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ultimate_launches (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cursor.execute('''CREATE TABLE IF NOT EXISTS ultimate_launches (id INTEGER PRIMARY KEY AUTOINCREMENT,
             launch_time TEXT,
             mission_name TEXT,
             flight_number INTEGER,
@@ -166,19 +153,13 @@ def save_to_sqlite(record):
             landing_outcome TEXT,
             temp_c REAL,
             wind_speed_kmh REAL,
-            visibility_m INTEGER
-        )
-    ''')
+            visibility_m INTEGER)''')
 
-    cursor.execute('''
-        INSERT INTO ultimate_launches (
-            launch_time, mission_name, flight_number, launch_site, 
+    cursor.execute('''INSERT INTO ultimate_launches (launch_time, mission_name, flight_number, launch_site, 
             booster_version, payload_mass_kg, orbit, landing_outcome,
-            temp_c, wind_speed_kmh, visibility_m
-        )
+            temp_c, wind_speed_kmh, visibility_m)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        launch_time_str,
+    ''', (launch_time_str,
         record['mission_name'],
         record['flight_number'],
         record['launch_site'],
@@ -188,15 +169,13 @@ def save_to_sqlite(record):
         record['landing_outcome'],
         record['temp_c'],
         record['wind_speed_kmh'],
-        record['visibility_m']
-    ))
+        record['visibility_m']))
 
     conn.commit()
     conn.close()
 
 
 def cleanup_database():
-    #Database Cleanup
     conn = sqlite3.connect('master_spacex_weather.db')
     df = pd.read_sql_query("SELECT * FROM ultimate_launches", conn)
     missing_payload_values = df['payload_mass_kg'].isnull().sum()
@@ -207,12 +186,10 @@ def cleanup_database():
     conn.close()
     return f"Database cleaned! Filled {missing_payload_values} missing payload_mass_kg values with booster version averages."
 
-
 def statistical_Analysis():
     conn = sqlite3.connect('master_spacex_weather.db')
     df = pd.read_sql_query("SELECT * FROM ultimate_launches", conn)
     print("●●● STATISTICAL ANALYSIS ●●●")
-    #Descriptive Statistical Analysis
     print(df.describe())
     #Landing Success/Failure Rate Analysis
     landing_success_count = df["landing_outcome"].str.contains("True").sum()
@@ -229,8 +206,7 @@ def statistical_Analysis():
     launch_site_distribution = df['launch_site'].value_counts(normalize=True) * 100
     print(f"Launch Site Distribution (%): {launch_site_distribution.to_dict()}")
     
-    #Inductive Statistical Analysis
-    #Assumption of landing success based on wind speed.
+    #Assumption of landing success based on wind speed.
     #H0: Wind speed does not affect landing success.
     #H1: Wind speed affects landing success.
     success_wind = df[df["landing_outcome"].str.contains("True")]["wind_speed_kmh"]
@@ -241,7 +217,7 @@ def statistical_Analysis():
     else:
         print(f"Fail to Reject H0: Wind Speed does not significantly affect Landing Outcome (t-statistic = {t_stat:.4f}, p-value = {p_value:.4f})")
     
-    #Landing success hypothesis based on launch site.
+    #Landing success hypothesis based on launch site.
     #H0: Launch site does not affect landing success.
     #H1: Launch site does affect landing success.
     contingency_table = pd.crosstab(df["launch_site"], df["landing_outcome"].str.contains("True"))
@@ -251,7 +227,7 @@ def statistical_Analysis():
     else:  
         print(f"Fail to Reject H0: Launch Site does not significantly affect Landing Outcome (chi2-statistic = {chi2_stat:.4f}, p-value = {p_value:.4f})")
     
-    #Landing success hypothesis based on Payload Mass and Orbit. 
+    #Landing success hypothesis based on Payload Mass and Orbit. 
     #H0: Payload Mass does not affect landing success per orbit.
     #H1: Payload Mass affects landing success per orbit.
     anova_data = df[df["landing_outcome"].str.contains("True")].groupby("orbit")["payload_mass_kg"].apply(list)
@@ -261,7 +237,7 @@ def statistical_Analysis():
     else:
         print(f"Fail to Reject H0: Payload Mass does not significantly affect Landing Outcome (F-statistic = {f_stat:.4f}, p-value = {p_value:.4f})")
     
-    #Landing Failure Hypothesis based on Visibility.
+    #Landing Failure Hypothesis based on Visibility.
     #H0: Visibility does not affect landing failure.
     #H1: Visibility affects landing failure.
     success_visibility = df[df["landing_outcome"].str.contains("True")]["visibility_m"]
@@ -271,7 +247,8 @@ def statistical_Analysis():
         print(f"Reject H0: Visibility significantly affects Landing Outcome (t-statistic = {t_stat:.4f}, p-value = {p_value:.4f})")
     else:
         print(f"Fail to Reject H0: Visibility does not significantly affect Landing Outcome (t-statistic = {t_stat:.4f}, p-value = {p_value:.4f})")
-    #Does the landing failure rate increase when visibility drops (e.g., < 5000 m)?
+    #Does the landing failure rate increase when visibility drops (e.g., < 5000 m)?
+
     df["low_visibility"] = df["visibility_m"] < 5000
     contingency_table = pd.crosstab(df["low_visibility"], df["landing_outcome"].str.contains("True"))
     chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
@@ -280,7 +257,7 @@ def statistical_Analysis():
     else:
         print(f"Fail to Reject H0: Low Visibility (<5000 m) does not significantly affect Landing Outcome (chi2-statistic = {chi2_stat:.4f}, p-value = {p_value:.4f})")
     
-    #Landing Success Hypothesis based on Payload Mass.
+    #Landing Success Hypothesis based on Payload Mass.
     #H0: Payload Mass does not affect landing success.
     #H1: Payload Mass affects landing success.
     success_payload = df[df["landing_outcome"].str.contains("True")]["payload_mass_kg"]
@@ -309,7 +286,7 @@ def statistical_Analysis():
     else:
         print(f"SpaceX payload mass didn't increase with the passage of time, (Correlation: {corr:.2f}), (P-Value: {p_value:.4f})")
 
-    #Seasonality Assumption in Launches.
+    #Seasonality Assumption in Launches.
     #H0: Launches are Independent of Seasonality.
     #H1: Launches are not Independent of Seasonality.
     df['month'] = df['launch_time'].dt.month
@@ -330,31 +307,27 @@ def encoding_modeling():
     le = LabelEncoder()
     ss = StandardScaler()
     ohe = OneHotEncoder(handle_unknown='ignore')
-    preprocess = ColumnTransformer(transformers=[
-        ('cat', ohe, ['launch_site', 'booster_version', 'orbit']),
-        ('num', ss, ['payload_mass_kg', 'temp_c', 'wind_speed_kmh', 'visibility_m'])
-        ])
+    preprocess = ColumnTransformer(transformers=[('cat', ohe, ['launch_site', 'booster_version', 'orbit']), ('num', ss, ['payload_mass_kg', 'temp_c', 'wind_speed_kmh', 'visibility_m'])])
     x = df[["launch_site", "booster_version", "orbit", "payload_mass_kg", "temp_c", "wind_speed_kmh", "visibility_m"]]
-    y = df["landing_outcome"]
+    y = df["landing_outcome"]
+
     y_encoded = le.fit_transform(y)
     tscv = TimeSeriesSplit(n_splits=3)
     for train_index, test_index in tscv.split(x):
         x_train, x_test = x.iloc[train_index], x.iloc[test_index]
-        y_train, y_test = y_encoded[train_index], y_encoded[test_index]
+        y_train, y_test = y_encoded[train_index], y_encoded[test_index]
+
     model = Pipeline(steps=[("preprocess", preprocess),("classifier", xgb.XGBClassifier(random_state=42))])
     model.fit(x_train, y_train)
-    y_pred = model.predict(x_test)
+    y_pred = model.predict(x_test)
+
     train_accuracy = model.score(x_train, y_train)
     test_accuracy = model.score(x_test, y_test)
     print(f"Train Accuracy: {train_accuracy:.2f}")
     print(f"Test Accuracy: {test_accuracy:.2f}")
-    print(EMReport_Classification(y_test, y_pred))
-    param_grid = {
-    'classifier__max_depth': [2, 3, 4],
-    'classifier__learning_rate': [0.01, 0.05, 0.1],
-    'classifier__n_estimators': [50, 100, 150],
-    'classifier__subsample': [0.7, 0.8, 1.0]       
-    }
+    print(EMReport_Classification(y_test, y_pred))
+
+    param_grid = {'classifier__max_depth': [2, 3, 4], 'classifier__learning_rate': [0.01, 0.05, 0.1], 'classifier__n_estimators': [50, 100, 150], 'classifier__subsample': [0.7, 0.8, 1.0]}
     inner_cv = TimeSeriesSplit(n_splits=3)
     grid_search = GridSearchCV(
     estimator=model,
@@ -370,7 +343,8 @@ def encoding_modeling():
     test_accuracy = best_model.score(x_test, y_test)
     print(f"New Train Accuracy: {train_accuracy:.2f}")
     print(f"New Test Accuracy: {test_accuracy:.2f}")
-    print(EMReport_Classification(y_test, best_model.predict(x_test)))
+    print(EMReport_Classification(y_test, best_model.predict(x_test)))
+
     xgb_model = best_model.named_steps['classifier']
     preprocessor = best_model.named_steps['preprocess']
     x_test_processed = preprocessor.transform(x_test)
@@ -379,7 +353,8 @@ def encoding_modeling():
     explainer = shap.TreeExplainer(xgb_model)
     shap_values = explainer(x_test_shap)
     joblib.dump(best_model, "best_model.pkl")
-    print("The model has been saved to the file 'best_model.pkl'")
+    print("The model has been saved to the file 'best_model.pkl'")
+
     print("\n" + "="*50)
     print(" Connecting with AWS S3 Bucket...")
     print("="*50)
@@ -391,13 +366,7 @@ def encoding_modeling():
     region_name = input("Region (for example eu-central-1) [Default: eu-central-1]: ").strip() or "eu-central-1"
     if aws_access_key and aws_secret_key and bucket_name:
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=aws_access_key,
-                aws_secret_access_key=aws_secret_key,
-                region_name=region_name
-            )
-            
+            s3_client = boto3.client('s3', aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name=region_name)
             s3_file_path = "production/best_model.pkl"
             print(f"\n Uploading model to bucket '{bucket_name}'...")
             s3_client.upload_file("best_model.pkl", bucket_name, s3_file_path)
@@ -415,18 +384,19 @@ def encoding_modeling():
 
 if __name__ == "__main__":
     #Data Pipeline
-    print(" ●●● START SPACEX DATA PIPELINE ●●● \n")
-
+    print(" --- START SPACEX DATA PIPELINE --- \n")
+
     space_records = get_spacex_data()
     print(f"Entries {len(space_records)} have been received. Registering in the database....")
     for record in space_records:  
         save_to_sqlite(record)
     
-    print("\n ●●● PREPARING DATA FOR MACHINE LEARNING ●●●")
+    print("\n --- PREPARING DATA FOR MACHINE LEARNING ---")
+
     cleanup_database()
-
+
     statistical_Analysis()
-
+
     encoding_modeling()
     
-    print("\n ●●● THE PIPELINE IS COMPLETED! ●●●")  
+    print("\n --- THE PIPELINE IS COMPLETED! ---")  
